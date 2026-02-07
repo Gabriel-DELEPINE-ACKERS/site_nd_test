@@ -132,6 +132,28 @@
             clip: rect(0, 0, 0, 0);
         }
 
+        .type-caret {
+            border-right: 2px solid currentColor;
+            padding-right: 6px;
+        }
+
+        @keyframes caret-blink {
+
+            0%,
+            50% {
+                border-color: currentColor;
+            }
+
+            51%,
+            100% {
+                border-color: transparent;
+            }
+        }
+
+        .type-caret.blink {
+            animation: caret-blink 1s steps(2, end) infinite;
+        }
+
         .project-card:hover .glitch-text::before {
             left: -1px;
             text-shadow: 1px 0 #ff00c1;
@@ -194,7 +216,6 @@
             opacity: 0;
         }
 
-        /* --- ACCORDEON STYLES --- */
         .submenu {
             max-height: 0;
             overflow: hidden;
@@ -203,7 +224,6 @@
 
         .submenu.open {
             max-height: 1000px;
-            /* Assez grand pour tout contenir */
         }
 
         .chevron {
@@ -212,10 +232,6 @@
 
         .chevron.rotated {
             transform: rotate(90deg);
-        }
-
-        .category-container {
-            border-left: 1px border-slate-800;
         }
     </style>
 </head>
@@ -254,6 +270,13 @@
                 </div>
             </div>
         </nav>
+
+        <div class="mt-auto pt-6 border-t border-slate-800/50">
+            <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800/50">
+                <p class="text-[9px] font-bold tracking-[0.15em] uppercase text-slate-500 mb-1">Créateur</p>
+                <p class="text-sm font-semibold text-blue-400">Gabriel Ackers</p>
+            </div>
+        </div>
     </aside>
 
     <div id="error-page">
@@ -274,12 +297,13 @@
         </div>
     </div>
 
-    <main class="flex-1 overflow-y-auto px-6 py-6 lg:px-10 scroll-smooth">
+    <main class="flex-1 overflow-y-auto px-6 py-6 lg:px-10 scroll-smooth relative">
         <header id="header"
             class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 opacity-0 transform translate-y-4">
             <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
                 <div>
-                    <h1 class="text-5xl md:text-6xl font-black tracking-tight">Dashboard</h1>
+                    <h1 class="text-5xl md:text-6xl font-black tracking-tight"><span id="dashboard-title"
+                            class="type-caret"></span></h1>
                     <div class="flex items-center gap-2">
                         <span class="relative flex h-2 w-2">
                             <span
@@ -338,7 +362,6 @@
     </main>
 
     <script>
-        // CONFIGURATION : Facile à modifier
         const navigation = [
             { category: "Professionnel", icon: "briefcase", projects: ["Portfolio"] },
             { category: "Jeux", icon: "gamepad-2", projects: ["SlowDeath"] },
@@ -368,9 +391,7 @@
                         <i data-lucide="chevron-right" class="w-3 h-3 chevron" id="chevron-${index}"></i>
                     </button>
                     <div class="submenu space-y-1 px-4 border-l border-slate-800/50 ml-4 my-1" id="submenu-${index}">
-                        ${item.projects.map(pName => `
-                            <button onclick="focusProject('${pName}')" class="w-full text-left p-1.5 text-xs text-slate-500 hover:text-blue-400 transition-colors">• ${pName}</button>
-                        `).join('')}
+                        ${item.projects.map(pName => `<button onclick="focusProject('${pName}')" class="w-full text-left p-1.5 text-xs text-slate-500 hover:text-blue-400 transition-colors">• ${pName}</button>`).join('')}
                     </div>
                 `;
                 navContainer.appendChild(navItem);
@@ -378,7 +399,6 @@
             lucide.createIcons();
         }
 
-        // Toggle pour le menu principal "Projets"
         function toggleMainProjectMenu() {
             const menu = document.getElementById('main-project-submenu');
             const chevron = document.getElementById('main-chevron');
@@ -386,7 +406,6 @@
             chevron.classList.toggle('rotated');
         }
 
-        // Toggle pour les catégories (Professionnel, etc)
         function toggleCategory(id) {
             const submenu = document.getElementById(`submenu-${id}`);
             const chevron = document.getElementById(`chevron-${id}`);
@@ -473,8 +492,25 @@
             document.getElementById('finished-projects').innerText = projects.filter(p => p.status === "Terminé").length;
             document.getElementById('pending-projects').innerText = projects.filter(p => p.status === "En cours").length;
             renderProjects();
-            gsap.to("#header", { opacity: 1, y: 0, duration: 0.8, ease: "power4.out" });
+            gsap.to("#header", { opacity: 1, y: 0, duration: 0.8, ease: "power4.out", onComplete: () => { typeDashboardOnce(); } });
         };
+
+        function typeDashboardOnce() {
+            const el = document.getElementById('dashboard-title');
+            if (!el) return;
+            const text = "Ackers";
+            const speed = 200;
+            let i = 0;
+            el.classList.add('blink');
+            const t = setInterval(() => {
+                el.textContent = text.slice(0, i + 1);
+                i++;
+                if (i >= text.length) {
+                    clearInterval(t);
+                    setTimeout(() => { el.classList.remove('type-caret', 'blink'); }, 3500);
+                }
+            }, speed);
+        }
     </script>
 </body>
 
